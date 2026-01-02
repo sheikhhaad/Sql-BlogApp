@@ -1,27 +1,15 @@
-// config/db.js
-import mysql from "mysql2/promise";
-import dotenv from "dotenv";
-
+import pkg from 'pg';
+import dotenv from 'dotenv';
 dotenv.config();
 
-let connection;
+const { Pool } = pkg;
 
- const connectToDatabase = async () => {
-  try {
-    if (!connection) {
-      connection = await mysql.createConnection({
-        host: "localhost",
-        user: "root",
-        password: "",
-        database: "blog_app",
-      });
-      console.log("✅ MySQL Connected Successfully (Async Mode)");
-    }
-    return connection;
-  } catch (error) {
-    console.error("❌ Database connection failed:", error.message);
-    process.exit(1);
-  }
-};
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL, // yaha apki connect string lagegi
+});
 
-export default connectToDatabase
+pool.on('connect', () => {
+  console.log('✅ PostgreSQL Connected Successfully');
+});
+
+export default pool;

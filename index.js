@@ -2,9 +2,10 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import connectToDatabase from './config/db.js';
+// import connectToDatabase from './config/db.js';
 import blogRoute from './routes/blogRoute.js';
 import userRoute from './routes/userRoute.js';
+import pool from './config/db.js';
 
 
 dotenv.config();
@@ -17,7 +18,7 @@ app.use(cors({
 }));
 app.use(cookieParser());
 app.use(express.json());
-await connectToDatabase();
+// await connectToDatabase();
 
 app.get('/', (req, res) => {
   res.send('Welcome to the SQL Blog App API');
@@ -26,5 +27,8 @@ app.get('/', (req, res) => {
 app.use('/api/blog', blogRoute);
 app.use('/api/user', userRoute);
 
+
+const res = await pool.query('SELECT NOW()');
+console.log(res.rows);
 
 app.listen(process.env.PORT)

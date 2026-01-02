@@ -1,13 +1,12 @@
-// config/queryHelper.js
-import connectToDatabase  from "./db.js";
+// config/querHelper.js
+import pool from './db.js'; // pg Pool import
 
 export const executeQuery = async (query, params = []) => {
   try {
-    const connection = await connectToDatabase();
-    const [rows] = await connection.execute(query, params);
-    return rows;
+    const result = await pool.query(query, params);
+    return result.rows;
   } catch (error) {
-    console.error("❌ Query execution error:", error.message);
+    console.error('❌ Query Error:', error.message);
     throw error;
   }
 };

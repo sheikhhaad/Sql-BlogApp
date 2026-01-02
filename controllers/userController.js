@@ -6,15 +6,13 @@ import bcrypt from "bcrypt";
 export const registerUser = async (req, res) => {
   const data = req.body;
   try {
-    // hash password
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(data.password, salt);
-    data.password = hashedPassword;
+    data.password = await bcrypt.hash(data.password, salt);
 
-    const result = await userModel.add(data);
+    const result = await userModel.add(data); // RETURNING * in model
     res.status(201).json({
       message: "✅ User registered successfully",
-      userId: result.insertId,
+      userId: result.id,
     });
   } catch (error) {
     res.status(500).json({
@@ -27,33 +25,38 @@ export const registerUser = async (req, res) => {
 // login user with bcrypt
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
+console.log(req.body);
 
   try {
-    const user = await userModel.getByEmail(email); // fetch user by email
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const users = await userModel.getByEmail(email);
+    
+    if (!users || users.length === 0)
+      return res.status(404).json({ message: "User not found" });
 
-    // compare hashed password
+    const user = users;
+    console.log(user);
+    
+
     const validPass = await bcrypt.compare(password, user.password);
     if (!validPass)
       return res.status(401).json({ message: "Invalid credentials" });
 
-    // create token
     const token = jwt.sign({ id: user.id }, process.env.jwt, {
       expiresIn: "1d",
     });
 
     res.cookie("token", token, {
-      httpOnly: true, // JS se access nahi hoga
-      secure: false, // HTTPS required in prod
-      sameSite: "lax", // CSRF protection
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({
       message: "✅ Logged in successfully",
       userId: user.id,
       userName: user.name,
-      token: token,
+      token,
     });
   } catch (error) {
     res.status(500).json({
@@ -76,13 +79,12 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// logotut user
-
+// logout user
 export const logoutUser = (req, res) => {
   res.clearCookie("token", {
-    httpOnly: true, 
+    httpOnly: true,
     secure: false,
     sameSite: "lax",
-    });
-    res.status(200).json({ message: "✅ Logged out successfully" });
+  });
+  res.status(200).json({ message: "✅ Logged out successfully" });
 };

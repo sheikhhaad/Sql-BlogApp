@@ -1,20 +1,20 @@
 import { blogModel } from "../models/blogModel.js";
 
-// addblog
+// addBlog
 export const addBlog = async (req, res) => {
   const data = req.body;
   console.log(data);
-  
+
   try {
     const result = await blogModel.add(data);
+    // PostgreSQL me insertId nahi, rows[0].id use hota hai
     res.status(201).json({
       message: "✅ Blog added successfully",
-      blogId: result.insertId,
+      blogId: result[0].id,
     });
   } catch (error) {
     res.status(500).json({
       message: "❌ Error adding blog",
-
       error: error.message,
     });
   }
@@ -25,11 +25,11 @@ export const getAllBlogs = async (req, res) => {
   try {
     const blogs = await blogModel.getAll();
     console.log(blogs);
-    
+
     res.status(200).json(blogs);
   } catch (error) {
     res.status(500).json({
-      message: "❌ Error fetching courses",
+      message: "❌ Error fetching blogs",
       error: error.message,
     });
   }
